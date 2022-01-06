@@ -1,10 +1,19 @@
-# Overview
-- modern sytnax to make more concise object comparisons
-- making multi-threading more convenient
-- behavior parametization using streams to pass lines of code as arguments to methods. This will minimize copy pasting when creating simililar methods that only differ slightly.
-- functional style programming in Java 
+# Table of Contents
 
-# Comparing Objects
+[Overview](#overview)
+
+[Ordering Collections of Objects](#ordering-collections-of-objects)
+
+[Filtering Lists](#filtering-lists)
+
+[Functional Programming With Streams](#functional-programming-with-streams)
+
+# Overview
+These notes cover how to use Java 8 features to more concisely code routine and lengthy tasks in Java such as sorting lists of objects, filtering lists, populating maps, and iterating through collections. These methods are typically not taught in beginning Java courses and are essential for understanding modern Java code. Additional topics covered include modern practices for parallel / concurrent programming, functional programming, optionals, and modules.
+
+**DISCLAIMER**: This file was purely created to be my personal reference and serve as a comprehensive record of the knowledge I gained. As such, it is not intended to be a 100% correct reference on these topics and there may be errors and misunderstandings here and there. It was written in a way to facilitate learning however, and some examples may come from various  textbooks, courses, videos, discussion forums, and online articles that I came across while studying this subject. 
+
+# Ordering Collections of Objects
 
 ## Old Methods
 - traditionally you would need to have the class extend the **comparable interface** (implement Comparable`<Object>`). This enables you to define ordering for your objects
@@ -262,7 +271,7 @@ List<Apple> heavyApples = inventory.parallelStream()
 
 <br><br/>
 
-# Functional Programming
+# Functional Programming With Streams
 
 ## Stream Basics
 - Core functional programming concepts are based around the use of streams. The elements of a stream are computed on-demand, that is only when they are needed, and this offers significant performance benefits
