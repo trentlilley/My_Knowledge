@@ -7,11 +7,13 @@
 [Filtering Lists](#filtering-lists)
 
 [Functional Programming With Streams](#functional-programming-with-streams)
+<br></br>
 
 # Overview
 These notes cover how to use Java 8 features to more concisely code routine and lengthy tasks in Java such as sorting lists of objects, filtering lists, populating maps, and iterating through collections. These methods are typically not taught in beginning Java courses and are essential for understanding modern Java code. Additional topics covered include modern practices for parallel / concurrent programming, functional programming, optionals, and modules.
 
-**DISCLAIMER**: This file was purely created to be my personal reference and serve as a comprehensive record of the knowledge I gained. As such, it is not intended to be a 100% correct reference on these topics and there may be errors and misunderstandings here and there. It was written in a way to facilitate learning however, and some examples may come from various  textbooks, courses, videos, discussion forums, and online articles that I came across while studying this subject. 
+**DISCLAIMER**: This file was purely created to be my personal reference and serve as a comprehensive record of the knowledge I gained. As such, it is not intended to be a 100% correct reference on these topics and there may be errors throughout the text. It was written in a way to facilitate learning however, and some examples may come from various  textbooks, courses, videos, discussion forums, and online articles that I came across while studying this subject. 
+<br></br>
 
 # Ordering Collections of Objects
 
@@ -132,6 +134,7 @@ inventory.sort(comparing(Apple::getWeight));
 
 - `comparing()` is an example of one of the many new convenience library functions introduced in modern versions of Java and must be used in conjunction with `sort()` when sorting custom objects. 
 
+[Return To Top](#table-of-contents)
 <br><br/>
 
 # Filtering Lists
@@ -274,7 +277,7 @@ List<Apple> heavyApples = inventory.parallelStream()
 # Functional Programming With Streams
 
 ## Stream Basics
-- Core functional programming concepts are based around the use of streams. The elements of a stream are computed on-demand, that is only when they are needed, and this offers significant performance benefits
+- Core functional programming concepts are based around the use of streams. The elements of a stream are computed on-demand, that is, only when they are needed, and this offers significant performance benefits over collections.
 
 - We provide another code example that generates a list of dish names from a restaurant menu that are under 400 calories. Additionally, they are sorted by number of calories.
 
@@ -305,7 +308,7 @@ for(Dish dish: lowCaloricDishes) {
 }
 ```
 
-- for a simple query this is a lot of code to type out. Additionally, we have to instantiate many list objects, one of which `lowCaloricDishes` is a garbage variable that serves no purpose other than to temporary contain our data
+- for a simple query this is a lot of code to type out. Additionally, we have to instantiate many list objects, one of which `lowCaloricDishes` is a garbage variable that serves no purpose other than to temporarily contain our data
 
 - we can reduce this to 6 lines of code and remove the garbage variable by using stream methods.
 
