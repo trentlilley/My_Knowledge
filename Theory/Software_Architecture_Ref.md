@@ -159,15 +159,41 @@
 ## Pipe and Filter
 -  another dataflow style that transforms input streams into output streams. Data is filtered as it is passed from method to method. Linux pipe commands using grep are a good example
 
-- Filters do not share state
+- Filters do not share state and can be hooked together. They are highly reusable and adaptable and are concurrent friendly.
+
+- Poor for GUI based applications. Also, performance of the system is based on the least efficient filter.
 
 ## Blackboard
+- Imagine a group of problem solvers sitting around a blackboard that contains a list of problems to solve. All data is held in the blackboard. The blackboard behaves as a central data structure
+
+- programs poll the blackboard through queries or procedure calls. 
+
+- Common in artificial intelligence applications. You do not need a pre-planned solution as problems can be solved as they come and go. Also used in IDEs.
 
 ## Rule Based
+- similar to blackboard, the central memory is a database that contains facts and production rules which consist of if then clauses over the set of variables. Components are user interface, inference engine, or knowledge based
 
-## Interpreter
+- useful for when the problem can be understood by repeatedly resolving a set of predicates. Rules and behavior can be easily modified
+
+- a virtual advice or chat bot will run on this type of engine.
+
+- can be difficult to troubleshoot if bad rules are injected into the system. There may also be unprecidented results from rules interacting.
+
+## Interpreter Style
+- Interpreter parses and executes input commands, updating the state maintained by the interpreter. Components niclude a command interpreter or user interface
+
+- Highly dynamic behavior possible, wher the set of commands is dynamically modified
+
+- Great for user programmability. Lisp and Scheme follow the interpreter style
+
+- Macros like Microsoft word and excel
+
+- All Java programs are compiled into java bytecode by the JVM. Java bytecode are instructions that are input to the machine. 
 
 ## Mobile Code
+ - A data element is dynamically transformed into a data processing component. 
+
+ - 
 
 ## Publish Subscribe
 

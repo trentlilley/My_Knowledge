@@ -7,6 +7,57 @@ This document covers AWS services in detail. It was not intended to be a referen
 
 # IAM
 
+## Policy Types
+- There are two types of policies in AWS: identity-based policies and resource based policies
+
+- `Identity-based policies` are ones that are assigned to entities within AWS (users, groups, and roles)
+
+- `Resource-based policies` are ones that are assigned to AWS services like S3, SQS, EC2 etc.
+
+## Entities
+- There are three types of entities that you can assign policies to in IAM: Users, Groups, and Roles. It is crucial to know the distinction between these three entities.
+
+- `Users` are self-explanatory. They are representations of the people or services that interact with AWS
+
+- `Groups` are simply collections of users.
+
+- `Roles` are just holders for policies that can be assigned to users and groups. Unlike users and groups however, roles can also be used to hold resource-based policies that are assigned to AWS services like S3 and EC2. Any user, group, or resource instance can only have one role assigned to it at a time. Multiple users, groups, or instances can have the same role however.
+
+## Types of Identity-Based Policies
+- There are three categories of policies used to define user access permissions within AWS: AWS managed policies, customer managed policies, and inline policies.
+
+- `AWS managed policies` are pre-formulated by aws. These are usually identified by the orange box icon next to the IAM policy name. Some examples of AWS managed policies include S3ReadOnlyAccess, AWSCodeCommitPowerUser, and AmazonDynamoDBFullAcces. These policies are often commonly used ones and amazon provides these to save you the time and effort of writing the JSON yourself. You can attatch an AWS managed policity to multiple users, groups, or roles in the same AWS account or even across different AWS accounts. You cannot edit AWS managed policies
+
+- `Customer managed policies` are custom policies that you create and administer. You can apply these to multiple users, groups, and roles, but only within your own account. When making your own custom policies, it is helpful to copy over the JSON of an existing AWS Managed policy and make modifications to it.
+
+- `Inline policies` are embedded within the user, group or role to which it applies. These policies cannot be applied to multiple users groups or roles and users outside of the group or role will not be able to see the inline in the policy search box. Inline policies will be deleted along with the users, policies, or roles they are attached to. These are typically only used over customer managed policies when you do not want to risk inadvertently assigning the policy to another user, group, or role. For this reason, you need to be in the user, group or role you want to create the inline policy for before you have the option to create the inline policy.
+
+## Cognito and Web Identity Federation
+- `Web identity federation` is used to dynamically distribute temporary AWS access credentials to users of your mobile app. These credentials are mapped to an IAM role that has only the permissions the user needs to use the app
+
+- Identity federation allows users to sign up for or sign into your application using credentials from a trusted identity provider called an `IpD`. Well known 0auth IpDs include Facebook, Amazon, Twitter, Github, and Linkedin. This is the AWS recommended authentication method for mobile apps.
+
+- When a user signs into your app via google, they acquire a token that can be exchanged for temporary AWS credentials. These credentials are not stored locally on the device, which is favorable for security reasons.
+
+- Amazon `cognito` takes care of setting up web identity federation for your mobile app so that you do not have to code your own authentication system that integrates with Facebook, Google, Github etc. You don't even need to code your own login page, though you can customize it if you'd like.
+
+- It also helps sycronize your users app data across all of their devices. This is accomplished via a technology called `Cognito Push Synchronization`. It sends silent SNS notifications to all devices associated with a given user identity whenever data stored in the cloud changes.
+
+- `user pools` are directories used to manage sign-up and sign-in functionality for mobile and web applications. The user pool is the entity that gives the user the access token.
+
+- `identity pools` are what provide the temporary AWS credentials enabling access to services like S3 or Dynamo DB. The identity pool is the entity that gives the user AWS credentials and an IAM role once they recieve a token.
+
+- To get started with cognito, you first need to make a user pool. Much like any IAM group, things like a password policy, MFA, and verification method can be configured for a user pool.
+
+- `App Clients` are used to call the various APIs that handle creating new user accounts and signing in users. When setting up an app client, ensure you select `generate client secret`. For the app client, you will also need to set up a `callback URL` (the url that the user will be redirected to after signing in) and a `sign out URL` (the url that the user will be redirected to after signing out). You will also want to select `Authorization code grant` and `implicit grant` as these will provide an authorization code and JWT token respectively.
+
+- Under the hood, cognito actually uses the `STS AssumeRoleWithWebIdentity` API to return temporary security credentials for mobile users authenticated by an IpD. For users not on mobile however, you will need to use STS explicitly to allow users to login or sign up using IpDs. In this scenario, STS does what the identity pool typically does: return AWS credentials in exchange for a JWT token.
+
+## Cross Account Access
+- Allows you to share resources in one account with users in a different account that you own. You must create a role in one account to allow acces and grant permissions to users in the other account.
+
+- There are many reasons why you may want to do this. In many companies, separate AWS accounts will be made for developers, deployers, testers etc. One team may need access to the resources in another team's AWS account.
+
 # S3
 
 # EC2
@@ -260,6 +311,166 @@ aws kms generate-data-key --key-id [KEHYID] --key-spec AES_256
 
 - AWS provides three tools to support CI/CD: Code Commit, Code Build, and Code Deploy
 
+## Cloud Formation
+- Allows you to programatically provision your AWS infrastructure so that you don't have to click around the AWS dashboard and set up everything manually. This is great if you already know everything you need to set up your AWS system. You will provide all your instructions in a Cloud Formation template file either .yaml or .json.
+
+- For example, you can write a could formation template to provision an EC2 instance, define its permissions, and create an ssh keypair for it. The template must be uploaded to S3. The resources provisioned by a template are referred to collectively as a `stack`.
+
+- Every template must have a resources section. This is the only mandatory section. The transform section is used to reference additional code storedin S3, allowing for code re-use.
+
+- Transform: allows you to reference code located in S3 like Lambda code or reusable snippets of Cloud Formation code
+
+- Mappings: allows you to create custom mappings like region AMI
+
+- Resources: This section is mandatory and describes the AWS resources that cloudformation will create
+
+- Infrastructure as Code: Cloud formation allows you to manage, configure, and privisoin aws infrastructure as yaml or json code.
+
+- Parameters; input custom values
+
+- Conditions: provision resources based on environment
+
+- In cloud formation, click on create new stack and design a new template if you do not have one prepared already. You can also get a template that is already on S3. Below is a sample yaml file which provisions a single EC2 instance and enables ssh.
+
+```yaml
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Template to create an EC2 instance and enable SSH
+
+Parameters: 
+  KeyName:
+    Description: Name of SSH KeyPair
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: Provide the name of an existing SSH key pair
+
+Resources:
+  MyEC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: t2.micro
+      ImageId: ami-0bdb1d6c15a40392c
+      KeyName: !Ref KeyName
+      SecurityGroups:
+       - Ref: InstanceSecurityGroup
+      Tags:
+        - Key: Name
+          Value: My CF Instance
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: 0.0.0.0/0
+
+Outputs: 
+  InstanceID:
+    Description: The Instance ID
+    Value: !Ref MyEC2Instance
+```
+- AWSTEmplateFormatVersion should always be 2010-09-09 as this is latest version of the template
+
+- In paramters you include any additional information such as the name you want to give to your keypair that will be used to ssh into EC2.
+
+- Under resources you specify the resources you want to provision. In our example, the EC2 instance and its accompanying security group to enable ssh on port 22 are the resources we need to specify. Documentation on AWS is provided on what additional properties you need to nest within these resources.
+
+- the outputs section is used to define variables that you wouldl ike to export to other CloudFormation templates. In the recieving template, include the value you want to import under the resources group. Prefix the value with the name of the sending stack (template).
+
+- below is a sample of a template that outputs some network information after provisioning and configuring a VPC. Only the outputs section is shown for brevity. Note that unlike the previous example, this time the template is shown in json format. Both json and yaml are acceptable formats for writing the template file.
+
+```json
+"Outputs" : {
+    "VPCId" : {
+      "Description" : "VPC ID",
+      "Value" :  { "Ref" : "VPC" },
+      "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-VPCID" }}
+    },
+    "PublicSubnet" : {
+      "Description" : "The subnet ID to use for public web servers",
+      "Value" :  { "Ref" : "PublicSubnet" },
+      "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-SubnetID" }}
+    },
+    "WebServerSecurityGroup" : {
+      "Description" : "The security group ID to use for public web servers",
+      "Value" :  { "Fn::GetAtt" : ["WebServerSecurityGroup", "GroupId"] },
+      "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-SecurityGroupID" }}
+    }
+  }
+```
+
+- below is an example of the template that recieves these values. Note that the values to import can be clearly identified by the Fn::ImportValue key. Only the resources section is shown for brevity.
+
+```json
+"Resources": {
+    "WebServerInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "t2.micro",
+        "ImageId": "ami-0ed9277fb7eb570c9",
+        "NetworkInterfaces": [
+          {
+            "GroupSet": [
+              {
+                "Fn::ImportValue": {
+                  "Fn::Sub": "${NetworkStackParameter}-SecurityGroupID"
+                }
+              }
+            ],
+            "AssociatePublicIpAddress": "true",
+            "DeviceIndex": "0",
+            "DeleteOnTermination": "true",
+            "SubnetId": {
+              "Fn::ImportValue": {
+                "Fn::Sub": "${NetworkStackParameter}-SubnetID"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+```
+## Failed Provisions
+
+- if a cloud formation deployment ever fails due to mistakes in configuration, by default, your entire stack will be rolled back. This happense because the automatic rollback on error feature is enabled by default.
+
+- in order to preserve the resources that were successfully provisioned and only delete those resources in a failed state, you need to go to the Cloud formation console and select "preserve successfully provisioned resources" under the stack failure options. You also need to use the aws cli to set the --disable-rollback flag to false.
+
+
+
+## Nested Stacks
+- Nested stacks provide a way for you to reuse cloud formation code for common use cases. For instance, instead of manually copying and pasting your yaml files for every single instance of a load balancer, you can store it in a cloud formation template and have that template be referenced by other templates.
+
+- To do this, in your yaml file for the load balancer, include the TemplateURL under tags with a link to your s3 bucket containing the standard template you want to reuse. 
+
+## Serverless Application Model (SAM)
+- If you are notrunning your application on EC2 instances however, and are using serverless technologies instead, you must use the extension of cloud formation called SAM to provision serverless resources. SAM uses its own template style and its CLI is used to package code and upload it to S3 where it can be then deployed by cloud formation.
+
+- it uses simplified syntax for defining serverless resources such as APIs, Lambdas, and DynamoDB tables
+
+- the two commands you will use are `sam package` to package your application and `sam deploy` to deploy your application. The sam package command takes 3 args: a yaml template, an output sam yaml template, and the s3 bucket to store this output. The sam deploy command takes 3 args: your template file, the name of your stack, and an IAM role to be created
+
+- To start using SAM, you must first install the SAM cli on your OS. Ensure that your Cloud Formation template and your application code files are available either on your local machine or on S3. Your template file in yaml format may look like this. Note that in transform we specify serverless.
+
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  TestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12.x
+      Environment:
+        Variables: 
+          S3_BUCKET: cfsambucket
+```
+
+- Next use the sam package and sam deploy commands. Afterwards you will see that this sam cloud formation template has automatically placed your code into Lambda as expected.
+
 ## Code Commit
 - AWS version control solution. It functions like a git repository.
 
@@ -326,6 +537,57 @@ hooks:
 ```
 
 ## Code Pipeline
-- Automates the entire process of building, testing and deploying your application every time changes are made to the code
+- Automates the code build, test, and deployment process. Every time there is a change to your code, the pipline will execute this workflow which consists of updating the source in the CodeCommit repository, builiding; packaging; and running automated tests for the code in CodeBuild, and deploying the application into a staging or production environment using CodeDeploy 
+
+- It integrates with CodeCommit, CodeBuild, CodeDeploy, Github, Jenkins, Elastic Beanstalk, CloudFormation, Lambda, and Elastic Container Service
+
+- To prepare to use code pipeline, you want to have at least one S3 bucket for your cloudformation json and another for your application. The CloudFormation json is simply a file used to automate provisioning instances and defining their access and roles. You will need to copy the url of this S3 bucket. For your S3 bucket containing your application code, be sure to enable versioning.
+
+- Next, create an EC2 keypair and access the AWS cli. Enter your cloud formation script. Ensure that you replace
+the placeholder --template-url with the url of your S3 bucket containing the cloud formation file. This script
+can take around 5 minutes to complete
+
+```bash
+aws cloudformation create-stack --stack-name CodeDeployDemoStack \
+--template-url http://s3-eu-west-1.amazonaws.com/cftemplates-faye/CF_Template.json \
+--parameters ParameterKey=InstanceCount,ParameterValue=1 \
+ParameterKey=InstanceType,ParameterValue=t2.micro \
+ParameterKey=KeyPairName,ParameterValue=irkp \
+ParameterKey=OperatingSystem,ParameterValue=Linux \
+ParameterKey=SSHLocation,ParameterValue=0.0.0.0/0 \
+ParameterKey=TagKey,ParameterValue=Name \
+ParameterKey=TagValue,ParameterValue=CodeDeployDemo \
+--capabilities CAPABILITY_IAM
+```
+- check if the command is complete by entering this in the command line
+
+```bash
+aws cloudformation describe-stacks --stack-name CodeDeployDemoStack --query "Stacks[0].StackStatus" --output text
+```
+
+## Code Artifact
+- A repository for developers that makes it easy to find the software packages they need. It integrates with npm, maven, and python package index.
+
+- artifacts include documentation, libraries, compiled applications, and deployable packages
+
+- engineering teams can set up a list of approved packages, or packages that have been tested extensively for compatability with their software
+
+- to pull packages from an external repository like npm, you must first create an upstream repository with an extenral connetion to the npm registry (public repository)
+
+## Containers and Deployment
+- standardized units with everything the software needs to run including libraries, system tools, code, and runtime. Theya re similar to virtual machines, but could more accurately be described as virtual runtime environments. Use Docker to create Linux containers and Windows Containers for Windows workloads.
+
+- provide the foundation for microservice-based architectures. This is where a software application is divided into smaller units called "microservices" which are stateless, so if one fails, the others should still function. This architecture is much less error prone, more scalable, and easier to maintain than monolithic applications. 
+
+- ECS is used to deploy and scale containerized workloads without having to install, configure, and manage and scale your own orchestration platform. Kubernetes is a similar, widely used deployment tool, but unlike ECS it does not have deep integration with other AWS services like IAM, VPC, or Route53
+
+- ECS runs containers on clusters of virtual machines. Fargate can be used for serverless containers that don't need underlying EC2 instances. EC2 however gives the best control options for installation, configuration, and management of your compute environment.
+
+- ECR (Elastic Container Registry) is where you can store your container images.
+
+- Elastic Beanstalk also supports the deployment of docker containers. It handles the capacity provisioning, load balancing, scaling, and application health monitoring. It can run just a single docker container on a provisioned EC2 instance or run multiple containers within an ECS cluster.
+
+- In elastic beanstalk, you can update and rollback your application in a few easy clicks. Your application can be uploaded to elastic beanstalk either directly from your local machine as a zip file or from S3.
+
 
 # AWS Linux CLI
