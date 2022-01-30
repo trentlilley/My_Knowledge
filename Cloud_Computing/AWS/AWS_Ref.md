@@ -1,14 +1,38 @@
 # Table of Contents
 
+[Overview](#overview)
+
+[Identity Access Management](#iam)
+
+[S3](#s3)
+
+[EC2](#ec2)
+
+[Virtual Private Cloud](#vpc)
+
+[Route 53](#route-53)
+
+[Serverless Technologies](#serverless)
+
+[DynamoDB](#dynamodb)
+
+[Encryption](#kms-and-encryption)
+
+[Code Integration and Deployment](#developer-theory)
+
+[Command Line](#aws-linux-cli)
+
 # Overview
 This document covers AWS services in detail. It was not intended to be a reference for any one AWS certification, but as of now the content covers most of what exam-takers are expected to know in order to pass the Developer Associate and Solutions Architect Associate exams. This information is guaranteed to be current as of 2019 however most information is current as of 2021.
 
-**DISCLAIMER**: This file was purely created to be my personal reference and serve as a comprehensive record of the knowledge I gained. As such, it is not intended to be a 100% correct reference on these topics and there may be errors throughout the text. It was written in a way to facilitate learning however, and some statements may come from various textbooks, courses, videos, discussion forums, and online articles that I came across while studying this subject.
+**DISCLAIMER**: This file was purely created to be my personal reference and serve as a comprehensive record of the knowledge I gained. As such, it is not intended to be a 100% correct reference on these topics and there may be errors throughout the text. It was written in a way to facilitate learning however, and some statements and examples may come from various textbooks, courses, videos, discussion forums, and online articles that I came across while studying this subject.
+
+[Return To Top](#table-of-contents)
 
 # IAM
 
 ## Policy Types
-- There are two types of policies in AWS: identity-based policies and resource based policies
+- There are two general "classes" of policies in AWS: identity-based policies and resource based policies
 
 - `Identity-based policies` are ones that are assigned to entities within AWS (users, groups, and roles)
 
@@ -58,9 +82,97 @@ This document covers AWS services in detail. It was not intended to be a referen
 
 - There are many reasons why you may want to do this. In many companies, separate AWS accounts will be made for developers, deployers, testers etc. One team may need access to the resources in another team's AWS account.
 
+[Return To Top](#table-of-contents)
+
 # S3
 
+[Return To Top](#table-of-contents)
 # EC2
+
+[Return To Top](#table-of-contents)
+
+# VPC
+
+[Return To Top](#table-of-contents)
+
+# Route 53
+
+[Return To Top](#table-of-contents)
+
+# Serverless
+ - Serverless allows users to run code in the cloud without the hassle of having to manage servers. Eliminating this overhead frees up more time for businesses to focus on coding rather than configuring infrastructure. Serverless technologies include...
+
+ - S3: object and storage web hosting
+
+ - DynamoDB: a fully managed NoSQL database
+
+ - API Gateway: publish and secure APIs at any scale
+
+ - Lambda: enables running code as functions without the need to provision any servers
+
+ - SQS: message queue service that allows decoupling and scaling of applications
+ 
+ - SNS: messaging service for sending text messages, emails, and mobile notifications
+
+ - All of these serverless technologies are scalable and support logging to cloudwatch
+
+ - To Illustrate, let's say you connect your web browser to a serverless subscription video hosting website. First, your browser sends a request to API Gateway and the gateway routes your request to the appropriate lambda function. The lambda function you are routed to depends on the service you request. Requesting to access the login feature will route you to a different lambda than requesting to access the video player. The video files themselves may be stored in an S3 bucket which only becomes readable to paying subscribers through an authentication service.
+
+ ## Lambda
+ - lambda is basically where you upload your code on an AWS managed architecture. It takes care of everything required to run your code, including the runtime environment and supports Java, Go, PowerShell, Node.js, C#, Python, and Ruby. It's no wonder why these are popular industry languages for writing backend code.
+
+ - code can be directly copy pasted into the lambda code editor, uploaded from a zip, or deployed from a CloudFormation template
+
+ - Lambda is paid for by number of executions, the duration of those executions, and the amount of memory used. Your first 1 million executions / month are free. Afterwards you are charged only 20 cents per month for each additional 1 million executions.
+
+ - The service charge for execution duration and amount of memory is calculated by multiplying the memory of the function in GB by the runtime of the function in ms and then multiplying that by $0.00001667. Even a 10G function that runs for 1000ms is going to barely even cost a penny, making serverless a more cost effective choice than EC2 for running code.
+
+ - Lambda functions can be triggered by events, such as changes to data in an S3 bucket, a table in DynamoDB or even user-triggered requests via HTTP endpoint. There are countless other AWS services that can trigger lambda functions
+
+ - Logs from lambda functions are stored in AWS CloudWatch
+
+  - Oftentimes, real applications will be composed of multiple lambda functions where one function's output serves as the input for the next function. Each lambda in this case can be seen as a single "step". AWS provides an easy way to visualize the workflow of these steps. The state of each step is logged to make it easy to pinpoint where and where errors are ocurring.
+
+ - When creating a new lambda in AWS, it must be assigned an IAM policy to define its permissions. If one is not specified, the default IAM for lambda is used which only allows the lambda to send logs to cloudwatch.
+
+ - You can have multiple versions of the same lambda. The latest version will be annotated with $LATEST. You can use Aliases to point your application to a specific version instead if you do not want to use the latest version. Aliases are just custom names you give to your versions. If you are pointing to an alias instead of $LATEST however, AWS will not default to using the newest code you upload to that lambda.
+
+ - Know that by default there is a limit to the number of concurrent executions for any lambda. You will know you hit this 1,000 concurrent execution limit when your app starts throwing 429 HTTP error codes. To resolve this, contact AWS to extend your limit or purchase Reserved Concurrency for your most critical functions. Reserved Concurrency allows you to define exactly the number of concurrent executions you want for a particular lambda function.
+
+ - It is possible to allow Lambda to access resources that are protected by a private VPC such as a relational database or EC2 instance. Note that this feature is disabled by default. Ensure you have the private subnet ID and security group ID from the VPCs config on hand.
+
+ ## API Gateway
+
+ - API gateway allows you to publish, maintain, monitor, and secure APIs at any scale, but what even are APIs.
+
+ - APIs are application programming interfaces that are resopnsible for passing data between the user and backend services. They are essentially just lines in your code that do this specific task.
+ 
+ - When you enter travel details into a travel planning website, the website makes a series of API calls to display results (about flights, ticke prices, hotel options etc.) to you.
+
+ - Of particular interest to AWS users are RESTful APIs. REST stands for Representational State Transfer. These APIs are optimized for serverless and web applications
+
+ - API Gateway supports throttling. This feature can be used to prevent your web application from being overloaded with too many requests.
+
+ - If in any case you update your API Gateway and something goes wrong, AWS supports rolling back your gateway to a previous state
+
+ - APIs can be imported from solutions outside of AWS using external definition files like OpenAPI.
+
+ - When dealing with legacy applications which use SOAP, which returns XML, you can use API gateway to convert XML to JSON or have API Gateway configured as a SOAP web service passthrough
+
+ - API caching can be used to improve the performance of your APIs by storing API outputs into faster memory. Cached responses will live for 5 minutes default
+
+
+ ## X-Ray
+
+ - X-Ray is a convenient tool to help developers debug distributed software applications. It provides a visual roadmap of your application that tracks all the possible locations where requests are routed, supplying information like latency, HTTP status codes, and errors.
+
+ - X-Ray integrates with DynamoDB, Lambda, API Gateway, Elastic Load Balancer, S3, and many other AWS services. Monitored applications can be on EC2, ECS, on-premise, or Elastic Beansalk.
+
+ - X-ray agent must be installed on an EC2 instance. You must use the X-ray SDK and X-ray daemon to send data. The X-Ray daemon must be placed inside its own Docker iamge running alongside the application
+
+
+ [Return To Top](#table-of-contents)
+
 
 # DynamoDB
 - High performance NoSQL database system for AWS. It supports key-value data models with support for large objects such as json, html, and xml.
@@ -168,83 +280,94 @@ This document covers AWS services in detail. It was not intended to be a referen
 
 - All of these records are encrypted at rest and stored for 24 hours.
 
-# VPC
-
-# Route 53
-
-# Serverless
- - Serverless allows users to run code in the cloud without the hassle of having to manage servers. Eliminating this overhead frees up more time for businesses to focus on coding rather than configuring infrastructure. Serverless technologies include...
-
- - S3: object and storage web hosting
-
- - DynamoDB: a fully managed NoSQL database
-
- - API Gateway: publish and secure APIs at any scale
-
- - Lambda: enables running code as functions without the need to provision any servers
-
- - SQS: message queue service that allows decoupling and scaling of applications
- 
- - SNS: messaging service for sending text messages, emails, and mobile notifications
-
- - All of these serverless technologies are scalable and support logging to cloudwatch
-
- - To Illustrate, let's say you connect your web browser to a serverless subscription video hosting website. First, your browser sends a request to API Gateway and the gateway routes your request to the appropriate lambda function. The lambda function you are routed to depends on the service you request. Requesting to access the login feature will route you to a different lambda than requesting to access the video player. The video files themselves may be stored in an S3 bucket which only becomes readable to paying subscribers through an authentication service.
-
- ## Lambda
- - lambda is basically where you upload your code on an AWS managed architecture. It takes care of everything required to run your code, including the runtime environment and supports Java, Go, PowerShell, Node.js, C#, Python, and Ruby. It's no wonder why these are popular industry languages for writing backend code.
-
- - code can be directly copy pasted into the lambda code editor, uploaded from a zip, or deployed from a CloudFormation template
-
- - Lambda is paid for by number of executions, the duration of those executions, and the amount of memory used. Your first 1 million executions / month are free. Afterwards you are charged only 20 cents per month for each additional 1 million executions.
-
- - The service charge for execution duration and amount of memory is calculated by multiplying the memory of the function in GB by the runtime of the function in ms and then multiplying that by $0.00001667. Even a 10G function that runs for 1000ms is going to barely even cost a penny, making serverless a more cost effective choice than EC2 for running code.
-
- - Lambda functions can be triggered by events, such as changes to data in an S3 bucket, a table in DynamoDB or even user-triggered requests via HTTP endpoint. There are countless other AWS services that can trigger lambda functions
-
- - Logs from lambda functions are stored in AWS CloudWatch
-
-  - Oftentimes, real applications will be composed of multiple lambda functions where one function's output serves as the input for the next function. Each lambda in this case can be seen as a single "step". AWS provides an easy way to visualize the workflow of these steps. The state of each step is logged to make it easy to pinpoint where and where errors are ocurring.
-
- - When creating a new lambda in AWS, it must be assigned an IAM policy to define its permissions. If one is not specified, the default IAM for lambda is used which only allows the lambda to send logs to cloudwatch.
-
- - You can have multiple versions of the same lambda. The latest version will be annotated with $LATEST. You can use Aliases to point your application to a specific version instead if you do not want to use the latest version. Aliases are just custom names you give to your versions. If you are pointing to an alias instead of $LATEST however, AWS will not default to using the newest code you upload to that lambda.
-
- - Know that by default there is a limit to the number of concurrent executions for any lambda. You will know you hit this 1,000 concurrent execution limit when your app starts throwing 429 HTTP error codes. To resolve this, contact AWS to extend your limit or purchase Reserved Concurrency for your most critical functions. Reserved Concurrency allows you to define exactly the number of concurrent executions you want for a particular lambda function.
-
- - It is possible to allow Lambda to access resources that are protected by a private VPC such as a relational database or EC2 instance. Note that this feature is disabled by default. Ensure you have the private subnet ID and security group ID from the VPCs config on hand.
-
- ## API Gateway
-
- - API gateway allows you to publish, maintain, monitor, and secure APIs at any scale, but what even are APIs.
-
- - APIs are application programming interfaces that are resopnsible for passing data between the user and backend services. They are essentially just lines in your code that do this specific task.
- 
- - When you enter travel details into a travel planning website, the website makes a series of API calls to display results (about flights, ticke prices, hotel options etc.) to you.
-
- - Of particular interest to AWS users are RESTful APIs. REST stands for Representational State Transfer. These APIs are optimized for serverless and web applications
-
- - API Gateway supports throttling. This feature can be used to prevent your web application from being overloaded with too many requests.
-
- - If in any case you update your API Gateway and something goes wrong, AWS supports rolling back your gateway to a previous state
-
- - APIs can be imported from solutions outside of AWS using external definition files like OpenAPI.
-
- - When dealing with legacy applications which use SOAP, which returns XML, you can use API gateway to convert XML to JSON or have API Gateway configured as a SOAP web service passthrough
-
- - API caching can be used to improve the performance of your APIs by storing API outputs into faster memory. Cached responses will live for 5 minutes default
-
-
- ## X-Ray
-
- - X-Ray is a convenient tool to help developers debug distributed software applications. It provides a visual roadmap of your application that tracks all the possible locations where requests are routed, supplying information like latency, HTTP status codes, and errors.
-
- - X-Ray integrates with DynamoDB, Lambda, API Gateway, Elastic Load Balancer, S3, and many other AWS services. Monitored applications can be on EC2, ECS, on-premise, or Elastic Beansalk.
-
- - X-ray agent must be installed on an EC2 instance. You must use the X-ray SDK and X-ray daemon to send data. The X-Ray daemon must be placed inside its own Docker iamge running alongside the application
-
+[Return To Top](#table-of-contents)
 
 # CloudWatch
+- A monitoring service to monintor the health and performance of your AWS resources. It can monitor pretty much everything, making it a key tool for system administrators.
+
+- All EC2 instances send health and performance metrics to CloudWatch including CPU usage, disk usage, and netowrk status. Metrics are stored indefinitely and can be retrieved from any EC2 instance or load balancer even after they have been terminated
+
+- EC2 does not send `os-level metrics` to CloudWatch by default. You will need to download the `CloudWatch agent` in order to achieve this. Operating system metrics include free disk space, CPU idle time, and memory usage.
+
+- Metrics are sent in `5 minute intervals`, however this can be changed by paying additional fees for `detailed monitoring` which sends metrics in `1-minute intervals`. You could even get `1-second inteveral `sends by paying for `high resultion monitoring`.
+
+- With the `CloudWatch Agent` you can also monitor system and application logs and filter them for specific phrases, values, or patterns. 
+
+## Alarms
+- CloudWatch can be configured to send notifications to your phone or email via alarms. 
+
+- For instance, you can configure an alarm that sends you an email when your AWS account bill exceeds $100. 
+
+- Another possible use case is to have an phone notification sent to your system administrator whenver CloudWatch detects greater than 90% CPU utilization in your load balancer for over 5 minutes. It's a fantastic way to wake up your sysadmin in the middle of the night.
+
+## Metrics
+- A metric is a variable that can be monitored over an interval of time. In CloudWatch metrics are displayed as graphs. Each plot point in a graph consists of a timestamp and a unit of measurement.
+
+- Metrics should be associated with namespaces. Every unit of your application should have its own dedicated namespace that it can publish its metrics to. This provides a better way to orgainze your metrics.
+
+- For instance, AWS automatically configures namespaces for some of its services like EC2, EBS, Billing, SNS, and Lambda. All CloudWatch metrics from EC2 will be published under the EC2 namespace etc.
+
+- When making custom metrics, you will need to make a custom namespace.
+
+- In CloudWatch you can filter for metrics using a variety of search criteria, such as a string pattern, namespace, or instance id. These are called `dimensions`.
+
+- You can conveniently monitor your metrics of interest in a single page via the CloudWatch `dashboard`. It is similar in nature to the performance tab of a Windows task manager, but highly customizable. 
+
+## Installing CloudWatch Agent in EC2
+- To install the CloudWatch agent on your EC2 instance, be sure to give it the CloudWatchAgentServer managed policy in IAM via a role. 
+
+- In the EC2 CLI use these commands to install and configure the agent.
+
+```bash
+sudo yum install amazon-cloudwatch -agent -y
+```
+```bash
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-config-wizard
+```
+
+- If you have an "empty" EC2 instance you can test that everything has been configured properly by running a CPU stress test. Install the amazon linux extras package if you have not already, you will need it to download the stress application. The third command runs the stress application
+
+```bash
+sudo amazon-linux-extras install epel - y
+```
+```bash
+sudo yum install stress -y
+```
+```bash
+stress --cpu 1
+```
+
+- View your CloudWatch metrics to see the results.
+
+## Actions
+- CloudWatch actions are commands that can be used to publish, monitor, and alert on a variety of metrics.
+
+- Refer to the AWS CloudWatch API for an up to date list of API calls
+
+- `PutMetricData` publishes metric data points to CloudWatch. It takes a name, namespace, value, and timestamp as arguments
+
+```bash
+aws cloudwatch put-metric-data \
+--metric-name PageViewCount \
+--value 25 \
+--timestamp 2022-01-10T12:00:00.000Z
+```
+
+- `PutMetricAlarm` creates an alarm associated with a metric to alert you if a threshold has been reached. It is highly customizable.
+
+
+[Return To Top](#table-of-contents)
+
+# CloudTrail
+- Records user activity in your AWS account. This is unlike CloudWatch which monitors the finer performance-related details of your running applications.
+
+- CloudTrail records the creation, modification, and deletion of AWS resources (like IAM users, S3 buckets, and EC2 instances), giving details on who carried out these actions and when. It can also detect failed logins or any other API calls.
+
+- By default, you can view the last 90 days of account activity
+
+- CloudTrail does produce logs which can be integrated with CloudWatch Logs to keep track of user activity.
+
+[Return To Top](#table-of-contents)
 
 # KMS And Encryption
 - KMS (Key Management Service) is used to encrypt your sensitive data on AWS. It fully integrates with most AWS services including Dev Tools, S3, RDS, DynamoDB, Lambda, EBS, EFS, and CloudTrail.
@@ -299,7 +422,9 @@ aws kms get-key-rotation-status --key-id [KEYID]
 aws kms generate-data-key --key-id [KEHYID] --key-spec AES_256
 ```
 
-- Envelope encryption exists for performance reasons, particularly with respect to the network. Encrypting large amounts of data using just the customer key will require lots of data to be sent into KMS over the network. 
+- Envelope encryption exists for performance reasons, particularly with respect to the network. Encrypting large amounts of data using just the customer key will require lots of data to be sent into KMS over the network.
+
+[Return To Top](#table-of-contents)
 
 
 # Developer Theory
@@ -588,6 +713,8 @@ aws cloudformation describe-stacks --stack-name CodeDeployDemoStack --query "Sta
 - Elastic Beanstalk also supports the deployment of docker containers. It handles the capacity provisioning, load balancing, scaling, and application health monitoring. It can run just a single docker container on a provisioned EC2 instance or run multiple containers within an ECS cluster.
 
 - In elastic beanstalk, you can update and rollback your application in a few easy clicks. Your application can be uploaded to elastic beanstalk either directly from your local machine as a zip file or from S3.
+
+[Return To Top](#table-of-contents)
 
 
 # AWS Linux CLI
