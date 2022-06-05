@@ -1,7 +1,7 @@
 # Table of Contents
 
 # Overview
-During your early software development journey you most likely thought of or personally experienced these all of these issues before.
+Early on in your software development journey, it's likely that you have ran into the following issues or at least thought of them.
 
 - You are working on an existing project. You make complex changes to the code only to find out that after all your hard work, the program breaks. You spend hours trying to reset the code back to the state it was in before you made all your edits. If you were prudent, you may have made a backup zip file of your project and you would load that up and start fresh. Is there a less manual and more convenient way to backup and restore your code?
 

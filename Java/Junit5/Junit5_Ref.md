@@ -156,6 +156,40 @@ void timeoutTest() {
     }
 ```
 
+## Exceptions
+- There may be times when you expect a certian input to throw an error. You can test for this using `assertThrows()` which takes the class name for your exception followed by the method you are trying to call on the object
+
+- note that `system::run()` is just the same as system.run().
+
+```Java
+private App system = new App();
+
+@Test
+@Display("Exception expected")
+void testExpectedException() {
+  assertThrows(ExceptionName.class, system::run);
+}
+```
+- It is also possible to test if the message thrown by the throwable is the message you were expecting.
+
+```Java
+private App system = new App();
+
+@Test
+@Display("Exception expected")
+void testExpectedException() {
+  Throwable throwable = assertThrows(ExceptionName.class, () -> system.run(1000));
+
+  assertEquals("an exception message was thrown", throwable.getMessage());
+}
+```
+
+- These are some outdated (before JUnit5) methods to test for exceptions.
+
+```
+@Test(expected = Exception.class)
+```
+
 # Lifecycle Methods
 
 - So far we have seen test methods that are annotated with `@Test` but another commonly encountered type of method in JUnit test classes are lifecycle methods. These methods are annotated with `@BeforeAll`, `@AfterAll`, `@BeforeEach`, and `@AfterEach`
@@ -310,5 +344,63 @@ public class NestedTestsTest {
  });
  }
  }
+}
+```
+
+# Paramterized Testing
+- Instead of creating multiple test methods to test different parameters for a single function, you should use a parameterized test. You can enter all the inputs you want to test as "input,expected" pairs in a CsvSource annotation. Running this unit test will execute the test for all csv inputs.
+
+```Java
+// comma delimiter (default)
+@ParameterizedTest
+@CsvSource({"1016,true", "2000,true", "1500,false"})
+public void testLeapYear(int year, boolean expected) {
+  LeapYear ly = new LeapYear();
+  assertEquals(expected, ly.isLeapYear(year));
+}
+```
+```Java
+// custom delimeter
+@ParameterizedTest
+@CsvSource(value = {"1016:true", "2000:true", "1500"false"}, delimiter = ',')
+public void testLeapYear(int year, boolean expected) {
+  LeapYear ly = new LeapYear();
+  assertEquals(expected, ly.isLeapYear(year));
+}
+```
+
+- Without this optimization, you would be writing something unnecessarily lengthy like this.
+
+```Java
+@BeforeEach
+void setup() {
+  LeapYear ly = new LeapYear();
+}
+
+@Test
+public void leapYearsTest1 {
+  assertTrue(ly.isLeapYear(2016));
+}
+
+@Test
+public void leapYearsTest2 {
+  assertTrue(ly.isLeapYear(2000));
+}
+
+@Test
+public void leapYearsTest3 {
+  assertFalse(ly.isLeapYear(1500));
+}
+
+```
+- If you want to test an especially large number of inputs, you may want to store the parameters locally as a csv file instead.
+
+```Java
+// using external file
+@ParameterizedTest
+@CsvFileSource(resources = "/data.csv", numLinesToSkip = 1)
+public void testLeapYear(int year, boolean expected) {
+  LeapYear ly = new LeapYear();
+  assertEquals(expected, ly.isLeapYear(year));
 }
 ```
