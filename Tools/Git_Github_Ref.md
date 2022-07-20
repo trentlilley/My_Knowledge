@@ -157,7 +157,7 @@ ssh-add ~/.ssh/myprivatekey
 - if all went well, now you have all the necessary security clearance to push changes you make in your project to github.
 
 
-# Committing Changes to a  Repository
+# Submitting Changes to your Repository
 
 - Now that we know how to make a Github project, let's go over the most important thing: submitting changes to your repository. 
 
@@ -237,3 +237,83 @@ git push -u
 - When working with a project linked to Github, you may see an option to commit under a menu title something like Git or Version Control. This will typically pull up a visual list of changes you have made that can be checked and unchecked as well as a message box where you can put your commit message. You may then be able to commit or even commit and push all at once.
 
 - As with commit, in an IDE you will likely have a menu option to push your committed changes. Your IDE may ask you to supply your github credentials to ensure that you are the owner of the repository.
+
+# Submitting Changes to a Shared Repository
+- Shared repositories such as open source projects and the repositories in your workplace are not likely to automatically accept pushed changes for obvious reasons
+- Instead, you must submit `pull requests` or a proposal for the changes that you would like to make. The pull request will then be reviewed by the repository's owner or designated reviewers who will then decide whether to accept your changes or request revisions.
+- The process is similar but somewhat more involved than making changes to your own repository
+
+1. Fork the owner's repository, this effectively gives you your own copy of the shared repository
+
+2. Clone the repository you just forked from github down to your local machine, you can get the address by clicking on the green `code` button on the repository main page and clicking the HTTPS tab. Make sure you did not clone the original repository, otherwise you will have errors when pushing due to denied access
+```bash
+git clone https://github.com/my-username/Our_Project.git
+```
+
+3. Create your own branch. Never make changes to a main or master branch. You can see all branches and your current working branch in the repository using the `git branch` command. It's a good idea to do this after you create a new branch to make sure it went through
+```bash
+git checkout -b mybranchname
+git branch
+```
+if you ever need to do so, you can switch branches like so. Without the -b option, you are not creating a new branch
+```bash
+git checkout master
+```
+
+4. Make changes and use the status command to see the names of all of the files you made changes to
+```bash
+git status
+```
+
+5. Stage the changes using git add all command or just specify the files you wish to stage
+```bash
+git add .
+```
+```bash
+git add myfile1 myfile2 myfile3
+```
+
+6. Use the commit command accompanied by a message, commit messages should be short and descriptive
+```bash
+git commit -m "fixing bugs"
+```
+
+7. Before pushing, it is critical to ensure that your copy (your fork) is up to date with the latest version of the original repository, especially for large and popular projects, since changes could be made to the original since you last worked on it. First you need to enable pulling changes from the original repository into your fork by creating what is called an upstream repository. You do so by using the `remote` command and the *original repository's HTTPS address* NOT your fork's
+```bash
+git remote add upstream https://github.com/group-name/Our_Project.git
+```
+
+8. This enables you to now use the fetch command to pull changes from the original repository. This effectively "updates" your code to the latest version. All Commits from the original repository are stored in a branch called upstream/master. Use `git branch` to confirm this.
+```bash
+git fetch upstream
+git branch
+```
+
+9. Next, you need to merge the changes that you pulled into your local master branch. This does not delete your local changes. You may need to resolve any merge conflicts at this stage (more on this later).
+```bash
+git merge upstream/master
+```
+
+10. Finally, update your fork by pushing these changes. Ensure you switch to master branch first. Remember to confirm the name of the remote using `git remote` beacuse it may not be `origin` though it is by default
+```bash
+git checkout master
+git push origin master
+```
+
+11. Now you are ready to push. Use the push command to push to the remote. To find the name of the remote, again use the `git remote` command, it may not always be `origin`
+```bash
+git push origin mybranchname
+```
+
+12. Go to Github. Navigate to the main page of your fork of the repository and look for a button on the top right that says `Compare and Pull Request`. Add some details about the changes you made before submitting and wait for reviewers to go over your changes
+
+13. Remove your local branch from your fork if your changes were accepted since you will no longer need it.
+```bash
+git branch -d mybranchname
+```
+
+14. You may also want to remove your remote branch that is on Github. The repository owners may do it for you after accepting your changes.
+```bash
+git push origin --delete mybranchname
+```
+
