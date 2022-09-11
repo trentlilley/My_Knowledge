@@ -308,6 +308,21 @@ a == b #false
 a = 2
 b = 3
 a != b #true
+
+# Empty data types, empty strings, and zeroes are always false
+# Populated data are always true
+nums1 = []
+bool(nums1) #false
+
+nums2 = [1, 2, 3]
+bool(nums2) #true
+
+# Performing and/or operation on two data will not return a boolean
+# it will instead return the data that returns true
+# if both are true the second item will be returned
+
+nums3 = nums1 or nums2 # nums3 assigned nums2
+
 ```
 
 ## Lists
@@ -477,6 +492,10 @@ tri = (1, "joe", False)
 
 # basic single
 sin = ("joe",)
+
+# items accessed by ordered index
+id = tup[0]
+name = tup[1]
 ```
 
 - Enumerate is a more efficient way to loop through a list and collect its index and data as tuples
@@ -882,6 +901,99 @@ if __name__ == '__main__':
 """
 ```
 
+## Timing Code for Performance
+- Many ways to calculate the execution time of a block of code in python
+- The first and most intuitive method is to record the time at the line before your code executes, then record the time at the line after your code executes, then subtract the start time from the end time
+- Eaiest way is to use the performance counter, there are other clocks like time.time() or time.monotonic() but these offer less precision and reliability for only a negligible performance increase over perf_counter()
+
+```Python
+import time
+
+start = time.perf_counter()
+my_function()
+end = time.perf_counter()
+print(f"Function executed in {end - start:0.4f} seconds")
+```
+
+- The `timeit` module can be used to test code blocks more rigorously
+- It uses time.perf_counter() internally
+- It requires a slighly more complicated setup and the arguments you need to pass may be strange on first impression
+- *setup*: any imports required to run the code to test, you must enclose this code in a string
+- *stmt*: the function you wish to test, you must enclose this code in a string
+- *number*: the number of times you want to test the function, important for statistical purposes
+
+```Python
+# importing the required modules
+import timeit
+
+# binary search function
+def binary_search(mylist, find):
+	while len(mylist) > 0:
+		mid = (len(mylist))//2
+		if mylist[mid] == find:
+			return True
+		else if mylist[mid] < find:
+			mylist = mylist[:mid]
+		else:
+			mylist = mylist[mid + 1:]
+	return False
+
+
+# linear search function
+def linear_search(mylist, find):
+	for x in mylist:
+		if x == find:
+			return True
+	return False
+
+
+# compute binary search time
+def binary_time():
+	SETUP_CODE = '''
+from __main__ import binary_search
+from random import randint'''
+
+	TEST_CODE = '''
+mylist = [x for x in range(10000)]
+find = randint(0, len(mylist))
+binary_search(mylist, find)'''
+	
+	# timeit.repeat statement
+	times = timeit.repeat(setup = SETUP_CODE,
+						stmt = TEST_CODE,
+						repeat = 3,
+						number = 10000)
+
+	# printing minimum exec. time
+	print('Binary search time: {}'.format(min(times)))	
+
+
+# compute linear search time
+def linear_time():
+	SETUP_CODE = '''
+from __main__ import linear_search
+from random import randint'''
+	
+	TEST_CODE = '''
+mylist = [x for x in range(10000)]
+find = randint(0, len(mylist))
+linear_search(mylist, find)
+	'''
+	# timeit.repeat statement
+	times = timeit.repeat(setup = SETUP_CODE,
+						stmt = TEST_CODE,
+						repeat = 3,
+						number = 10000)
+
+	# printing minimum exec. time
+	print('Linear search time: {}'.format(min(times)))
+
+if __name__ == "__main__":
+	linear_time()
+	binary_time()
+
+```
+
 ## Logging
 - Can log to console and output file using logging library
 - debug: for diagnosing problems (level 10)
@@ -965,4 +1077,67 @@ def main(args):
 if __name__ = '__main__':
   main(sys.argv)
 ```
+
+- logging exceptions
+- traceback will be included automatically after the message
+
+```Python
+try:
+  my_broken_function()
+except Exception:
+  logging.exception("Exception caught")
+```
+
+## Multiprocessing
+- Takes advantage of multiple cores on a computer
+- Use a for loop to construct workers and jobs
+- The below code takes roughly 0.5s to execute, without multiprocessing it would take 10 * 0.5 seconds to execute
+
+```Python
+import multiprocessing
+import time
+
+def task():
+    print('Sleeping for 0.5 seconds')
+    time.sleep(0.5)
+    print('Finished sleeping')
+
+if __name__ == "__main__": 
+    start_time = time.perf_counter()
+    processes = []
+
+    # Creates 10 processes then starts them
+    for i in range(10):
+        p = multiprocessing.Process(target = task)
+        p.start()
+        processes.append(p)
+    
+    # Joins all the processes 
+    for p in processes:
+        p.join()
+
+    finish_time = time.perf_counter()
+
+    print(f"Program finished in {finish_time-start_time} seconds")
+```
+
+- Using an executor pool
+
+```Python
+import concurrent.futures
+import time
+
+def cube(x):
+    return x**3
+
+if __name__ == "__main__":
+    with concurrent.futures.ProcessPoolExecutor(3) as executor:
+        start_time = time.perf_counter()
+        result = list(executor.map(cube, range(1,100)))
+        finish_time = time.perf_counter()
+    print(f"Program finished in {finish_time-start_time} seconds")
+    print(result)
+```
+
+
 

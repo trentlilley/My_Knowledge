@@ -85,6 +85,101 @@ This document covers AWS services in detail. It was not intended to be a referen
 [Return To Top](#table-of-contents)
 
 # S3
+- Object storage suitable for documents, images, video media, code files, and webpages
+
+- Different from a database which is for storing datatypes like employee names, phone numbers, street addresses, account balances, anything that can be represented as a primitive.
+
+- S3 cannot be used to run databases or operating systems as it is not a computing environment
+
+- Features unlimited object storage and storage volume, so there is no need to know how much storage you need to provision upfront. There is a 5TB size limit for each object however.
+
+- Data in S3 has high `availability` as it is replicated across multiple storehouses
+
+- Data in S3 is also `durable` as there is a 99.99999999999% (11 9's) chance that an object will not be corrupted
+
+## Costs
+- Cost of storing objects on S3 depends on the S3 tier the objects are stored at as well as how many TB worth of objects you store a month.
+
+- For example, the first 50TB of objects in a month will charge you $0.023/GB whereas the next 450TB will charge you 0.022/GB
+
+## Buckets
+- S3 objects are stored in what AWS calls `buckets`. This is just an address where files are stored. It's comparable to a directory address on your computer's filesystem
+
+- S3 buckets can contain multiple objects. Unlike folders in a filesystem, buckets cannot be nested within buckets
+
+- S3 buckets share universal namespace, so they must have unique names. This is because they can be retrieved via a web address. A typical address looks like `https://bucket-name.s3.Region.amazonaws.com/object-name`
+
+- Predictably, uploading an object to an S3 bucket returns an HTTP 200 code if the upload was successful
+
+## Key-Value Store Model
+- In AWS, an object's name can be more formally referred to as a `key` (like profile.png)
+- The `value` associated with a key, on the other hand, is the actual sequence of bytes that composes the object
+- Each object has an associated version ID since S3 objects can be versioned
+- S3 objects can also contain metadata, or data about data. Useful metadata may include last-modified date, file author, and content-type
+
+## Tiers
+- Applied at the object level, not the bucket level
+
+- **`S3 Standard`** stores data redundantly across at least 3 availability zones. It is the default storage class, suitable for most workloads. Objects that reequire `frequent` access should be stored in this tier. 
+
+- **`S3 Standard-IA`** where IA stands for infrequent access is suitable for objects that may only be accessed a few times a month. Low per-GB storage price and per-GB retrieval fee however you must store you data in IA for a minimum of 30 days. Data is still replicated across at least 3 availability zones
+
+- **`S3 One-Zone-IA`** is similar to Standard-IA, but the data is stored reduntantly in a single availabilty zone rather than multiple. It costs 20% less than Standard-IA at the cost of lower availability (but the same 11 9's of durability). Objects stored here are still subject to the 30 day minimum
+
+- **`Glacier`** is cost optimised for data accessed a few times a year. Retrieval times are long, ranging from 1min-12hrs and you are charged for each retrieval. Objects stored here must remain for a minimum of 90 days. 99.99% durability and 11 9's availability
+
+- **`Glacier Deep Archive`** is even more cost optimised for rarely accessed data. Great for archives that need to be kept for compliance purposes. Retreival time is 12hrs on average. Objects stored here must remain for a minimum of 180 days. 99.99% durability and 11 9's availability
+
+> There is an object retreival fee for all tiers except S3 Standard
+
+>All tiers feature 11 9's durability and only S3 One-Zone-IA does not feature 99.99% availability (99.5% instead)
+
+> All tiers feature data redundancy across at least three AZs except S3 One-Zone-IA
+
+## S3 Intelligent Tiering
+- A service that automatically moves your data to the most cost-effective tier based on how frequently each object is accessed. It is best used for unknown access patterns
+
+- Increases monthly fee by $0.0025 for every 1000 objects stored.
+
+- Guarantees 99.99% availability and 11 9's of durability
+
+## Lifecycle Management
+- You can define rules to move objects that are not frequently used into lower tiers of storage or delete them altogether. These rules are highly customisable and can be configured to run automatically according to specific criteria
+
+## Versioning and Deleted Objects
+- Versioning in S3 allows you to rollback to previous versions if you accidentally delete or modify an object
+
+## Security Features
+- A bucket can be configured to encrypt all new objects when they are stored in the bucket
+
+- By default, all buckets are created with `private` access level, meaning only the bucket owner has read/write priviledges. Also, nobody can access them on the web. To grant public access, you must configure it manually via access control lists or bucket policies.
+
+- S3 supports `acccess control lists`, which are used to define whicch AWS accounts or groups have access to the bucket or individual object and the type of access.
+
+- `Bucket Policies` can also be applied to buckets to specify which actions a user is allowed to perform on all of the objects in the bucket (ex. allowing a team to PUT but not DELETE objects in a bucket). Bucket policies do not apply permissions to individual objects.
+
+- Logs can be generated for each S3 bucket whenever someone request to upload, read, or delete an object in the bucket. `S3 Access Logs` must be enabled manually.
+
+## On the AWS Dashboard
+- S3 on the AWS Dashboard shows all your buckets across all availability zones.
+
+- You can enable or disable versioning for buckets. Although the buckets themselves cannot be versioned, the objects held within them can. Extra protection from unintended modifications and deletions to your objects
+
+- You may add tags to a bucket (you can also add tags to individual objects). These are simply used to organise your buckets and objects into categories that can be filtered for later.
+
+- You can disable or enable encryption and select the encryption type. The default is SSE-S3. SSE-KMS can be used instead and is suitable for those who wish to have more control over how their keys are managed and audited.
+
+- You also have the option to enable write once read many (WORM) which prevents your objects from being written after their initial upload, providing additional safeguards against accidental modification. The effect duration of WORM can be configured.
+
+- After creating the bucket, uploading any object to the bucket will prompt you to specify the storage tier for the object as well as the access control list.
+
+- Clicking on an object on the Dashboard will bring up its information, including its web address. Try clicking on the web address to simulate the outcome when a public user is trying to access it. This is great for quickly testing if your buckets have the access levels you want them to have.
+
+## Making an Object Public
+- First, check the bucket policy for the bucket the object is stored in. It must be configured to allow public access and will prevent public access even if your object has public enabled on its access control list
+- Next, select public on the object's access control list
+- Click on the object and access its web address to see that the changes were properly made
+
 
 [Return To Top](#table-of-contents)
 # EC2

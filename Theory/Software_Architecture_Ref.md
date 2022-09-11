@@ -201,5 +201,47 @@
 
 ## P2P
 
+# Chapter 5: Connectors
+
+## Study List
+- Implemented vs Conceptual
+- First class connectors
+- Connector roles
+- As communicators
+- As coordinators
+- as converters
+- as facilitators
+- types
+- connector framework
+- procedure call
+- event connector
+- data access connector
+- linkage connector
+- stream connector
+- arbitrator connector
+- adaptor connector
+- distributor connector
+- chosing a connector
+- availability and synchronicity
+- middleware
+- creating basic connectors
+- composite connectors
+
+## What is a Connector
+- architectural element that models interactions among components and establishes rules that govern those interactions
+
+- simple interactions include procedure calls and shared variable access
+
+- complex interactions include client server protocols and database access protocols and asynchronous event multicast.
+
+- each connector provides interaction ducts and transfer of control and/or data
+
+## Implemented vs. Conceptual Connectors
+- In system implementations, connectors have no dedicated code, have no identity, do not correspond to compilation units, and have distributed implementation
+
+- 
+
+
+
 
 

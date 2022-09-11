@@ -789,4 +789,23 @@ function App() {
 - This will add new items to the array, however, as of now, React does not know to render this updated array and will keep displaying the old two-item array to the webpage
 
 
+```jsx
+function App() {
+    const [things, setThings] = React.useState(["Thing1", "Thing2"])
+    const thingsElements = things.map(thing => <p key={thing}>{thing}</p>)
 
+    function addItem() {
+        const newThingText = `Thing${things.length + 1}`
+        setThings(prevState => [...prevState, newThingText])
+    }
+
+    return (
+        <div>
+            <button onClick={addItem}>Add Item</button>
+            {thingsElements}
+        </div>
+    )
+}
+
+ReactDOM.render(<App />, document.getElementById('root'))
+```
