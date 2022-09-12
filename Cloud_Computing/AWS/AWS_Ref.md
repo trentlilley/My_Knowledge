@@ -6,6 +6,8 @@
 
 [S3](#s3)
 
+[Cloudfront](#cloudfront)
+
 [EC2](#ec2)
 
 [Virtual Private Cloud](#vpc)
@@ -91,7 +93,7 @@ This document covers AWS services in detail. It was not intended to be a referen
 
 - S3 cannot be used to run databases or operating systems as it is not a computing environment
 
-- Features unlimited object storage and storage volume, so there is no need to know how much storage you need to provision upfront. There is a 5TB size limit for each object however.
+- Features unlimited object storage and storage volume, so there is no need to know how much storage you need to provision upfront. The minimum size an object can be is 0 bytes whereas the maximum is 5TB.
 
 - Data in S3 has high `availability` as it is replicated across multiple storehouses
 
@@ -160,6 +162,27 @@ This document covers AWS services in detail. It was not intended to be a referen
 
 - Logs can be generated for each S3 bucket whenever someone request to upload, read, or delete an object in the bucket. `S3 Access Logs` must be enabled manually.
 
+## Encryption
+
+### Encryption in Transit
+- It is important to encrypt your data as you send it to and from your S3 buckets
+- Typically done using TLS, but SSL may still be used. HTTPS protocol is used to upload and download files between our local system and S3
+- Encryption in transit can be enforced using a bucket policy that denies put requests. Ensure `aws:SecureTransport: false` is included in the bucket policy json
+
+### Encryption at Rest: Server Side
+- Encrypting data when it is stored on disk (S3 storage)
+- `SSE-S3` are S3 managed keys that use AES 256-bit encryption. Request headers will include x-amz-server-side-encryption: AES256.
+- `SSE-KMS` uses the AWS key management service. KMS comes with additional benefits like envelope keys that give you extra levels of protection and audit trails. Request headers will include x-amz-server-side-encryption: KMS.
+- `SSE-C` customer managed keys
+- Encryption at rest can be enforced at bucket creation time or by using bucket policies. Be sure to include `x-amz-server-side-encryption: true` parameter in the policy json
+
+### Encryption at Rest: Client Side
+- Encrypt the files yourself before uploading them to S3.
+
+## CORS
+- Allows objects in one S3 bucket to communicate with objects in another S3 bucket
+- On your secondary S3 bucket, go to the permissions tab and scroll down to the CORS section and add a CORS configuration.
+
 ## On the AWS Dashboard
 - S3 on the AWS Dashboard shows all your buckets across all availability zones.
 
@@ -179,6 +202,75 @@ This document covers AWS services in detail. It was not intended to be a referen
 - First, check the bucket policy for the bucket the object is stored in. It must be configured to allow public access and will prevent public access even if your object has public enabled on its access control list
 - Next, select public on the object's access control list
 - Click on the object and access its web address to see that the changes were properly made
+
+[Return To Top](#table-of-contents)
+
+# CloudFront
+- Amazon's CDN, a system of distributed servers that work together to deliver large volumes of web data with low latency. Often used to deliver content stored in S3.
+
+- Your data will be cached into various `edge locations` so that users around the world can access your web service without large amounts of latency. An edge location is not to be confused with an AWS region or Availability Zone. Amazon manages a network of over 200 edge locations.
+
+- The resource where this data is sourced from is known as the `CloudFront Origin`. It can be an S3 bucket, an EC2 instance, a load balancer, or route 53.
+
+- Using CloudFront can accelerate object uploads in S3. Data arrives first at the edge location and then is automatically routed to an optimized network path to its final destination.
+
+## Caching
+- Objects at an edge location are cached. The amount of time they stay cached is known as the `Time To Live` or TTL. The default TTL is 1 day. If the object is not accessed for a day, the object is removed from the cache.
+
+- You can clear the cache before it achieves its TTL, however this incurs a charge. This may be necessary to do when replacing an old version of the object with a new one so that users can get the latest version.
+
+- It is possible to customize the TTL at any time. Adjust it according to how frequently you predict your data will be updated. It can be as short as 1 second or as long as 1 year. 
+
+## AWS Dashboard
+- To create a CDN you should at least have one object already made publically available on an S3 bucket.
+
+- Set the `Origin Domain Name` to the address associated with your resource.
+
+- Go to "View policy details" under `Cache Policy` to configure the TTL for this resource
+
+- The `Origin request policy` is where you can configure advanced delivery options based on request header information and cookies
+
+- Use `Restrict viewer Access` if you want only authorized users with a signed URL to read the data. This is suitable when you are running subscription based web-services where content like videos should only be made available to paid subscribers.
+
+- Enable `AWS WAF` (Web Application Firewall) to help protect against common attacks like SQL injection and XSS.
+
+- Once created, you can select your CDN and restrict access by region by accessing the `restrictions` tab.
+
+- The `Invalidations` tab is where you can force remove objects from the cache if you do not want to wait for the TTL to expire
+
+### Origin Access Identity
+- After creating your CloudFront distribution, set up Origin Access Identity to ensure all requests go through CloudFront and not directly to your Origin
+
+- This along with `Signed URLs` and `Signed Cookies` is the primary way to give users access to your private objects.
+
+- OAI is being replaced by `OAC` (Origin Access Control) which is similar but more robust in function
+
+- When you create your distribution, select use OAI and select 'yes' on update bucket policy.
+
+- Make sure the bucket containing your object has public access blocked, or else Origin Access Identity will not work
+
+## HTTP Request Types
+- When creating a CloudFront distribution, you can select from one of three `Allowed HTTP methods` presets. One allows GET, HEAD. Another allows GET, HEAD, OPTIONS. And the last allows GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE.
+
+- The first two presets provide read access wheras the last provides read and write access. If you want to host a website that enables users to leave comments, post photos, or fill out forms, you will need to use the third option to grant write privileges.
+
+- `GET` is necessary to allow the client or browser to be able to see the webpage.
+
+- `HEAD` contains information, or metadata, about the request outside of the body or content of the webpage itself. Browsers also must be able to make HEAD requests to view webpages.
+
+- `PUT` sends a new resource to the server to replace an existing one. This is a write method. An example of a put request is updating a profile photo on Facebook. On AWS, resources uploaded via put requests are limited to 5GB.
+
+- `PATCH` modifies an existing resource without sending a replacement resource. For example, patch requests are made whenever we modify the contents of our shopping cart on an online store.
+
+- `POST` sends a new resource to the server, not replacing an existing one. For example, post requests are made when someone writes a comment on a blog post.
+
+- `DELETE` deletes data from the server. For example, delete requests are made when you remove your email address from a mailing list.
+
+- `OPTIONS` used to find all HTTP methods made available by the URL or website.
+
+
+
+
 
 
 [Return To Top](#table-of-contents)

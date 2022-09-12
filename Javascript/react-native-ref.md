@@ -8,9 +8,10 @@
 - The fastest way to set up an app is to set up the expo cli
 - Initialise the project in VSCode
 - Finally, start project
+
 ```bash
 npm install -g expo-cli
-expo init myProject
+npx create-expo-app
 expo start
 ```
 
